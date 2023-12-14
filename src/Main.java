@@ -1,16 +1,68 @@
+import java.util.HashMap;
+import java.util.Map;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+    private static final int TOTAL_BLOCKS = 100; // Assume our disk has 100 blocks
+    private static char[] disk = new char[TOTAL_BLOCKS]; // Initially, all blocks are unallocated
+
+    static {
+        // Initialize disk blocks to '0' (unallocated)
+        for (int i = 0; i < TOTAL_BLOCKS; i++) {
+            disk[i] = '0';
         }
+    }
+
+    static class File {
+        String filename;
+        int startBlock;
+        int length;
+
+        public File(String filename, int startBlock, int length) {
+            this.filename = filename;
+            this.startBlock = startBlock;
+            this.length = length;
+        }
+    }
+
+    private static Map<String, File> directory = new HashMap<>(); // Map filename to its File struct
+
+    private static boolean allocateFile(String filename, int size) {
+        int freeBlocks = 0;
+        int startBlock = -1;
+
+        for (int i = 0; i < TOTAL_BLOCKS; i++) {
+            if (disk[i] == '0') {
+                if (freeBlocks == 0) {
+                    startBlock = i;
+                }
+                freeBlocks++;
+
+                if (freeBlocks == size) {
+                    for (int j = startBlock; j < startBlock + size; j++) {
+                        disk[j] = '1';
+                    }
+                    directory.put(filename, new File(filename, startBlock, size));
+                    return true;
+                }
+            } else {
+                freeBlocks = 0;
+            }
+        }
+        return false; // Not enough contiguous blocks found
+    }
+
+    private static void displayDisk() {
+        for (int i = 0; i < TOTAL_BLOCKS; i++) {
+            System.out.print(disk[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        allocateFile("file1", 10);
+        allocateFile("file2", 20);
+        allocateFile("file3", 5);
+        displayDisk();
     }
 }
